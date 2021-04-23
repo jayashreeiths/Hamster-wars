@@ -1,0 +1,10 @@
+h1 {
+    color: darkgreen;
+}
+
+#hamsterHeading {
+    font-size: 76px;
+    line-height: 40px;
+    align-self: center;
+    align-items: center;
+}
