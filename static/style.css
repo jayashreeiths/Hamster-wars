@@ -5,6 +5,10 @@ h1 {
 #hamsterHeading {
     font-size: 76px;
     line-height: 40px;
-    align-self: center;
-    align-items: center;
+    text-align: center;
+}
+
+img {
+    width: 10%;
+    height: auto;
 }
