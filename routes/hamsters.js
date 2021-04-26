@@ -18,7 +18,6 @@ router.get('/', async(req, res) => {
     let items = []
     snapshot.forEach(doc => {
         const data = doc.data()
-            // we need Id for PUT/POST/DELETE
         data.id = doc.id
         items.push(data)
 
