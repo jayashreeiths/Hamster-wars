@@ -1,85 +1,55 @@
-const getDatabase = require('../database.js')
-const db = getDatabase()
+const matchesDatabase = require('../database.js')
+db = matchesDatabase.getDatabase()
 
 const express = require('express')
 const router = express.Router()
 
-// GET /matches
-router.get('/', async(req, res) => {
-
-    const hamsterRef = db.collection('matches')
-    const snapshot = await hamsterRef.get()
-
-    if (snapshot.empty) {
-        res.send([])
-        return
-    }
-
-    let items = []
-    snapshot.forEach(doc => {
-        const data = doc.data()
-        data.id = doc.id
-        items.push(data)
-
-    })
-    res.send(items)
-})
-
+router.get("/", async(req, res) => {
+    const items = await matchesDatabase.getCollection("matches");
+    res.send(items);
+});
+//Get matches by ID
 router.get('/:id', async(req, res) => {
-    const id = req.params.id
-    const docRef = await db.collection('matches').doc(id).get()
+    const items = await matchesDatabase.getDocByID('matches', req.params.id);
 
-    if (!docRef.exists) {
-        res.status(404).send('match does not exist')
-        return
-    }
+    res.send(items);
+});
 
-    const data = docRef.data()
-    res.send(data)
-})
+// post matches
+
 router.post('/', async(req, res) => {
 
     const object = req.body
-    console.log("hi")
-    if (!ishamstersObject(object)) {
+
+    if (!ismatchesObject(object)) {
         res.sendStatus(400)
         return
     }
 
-    const docRef = await db.collection('matches').add(object)
+    const docRef = await db.collection("matches").add(object)
+
     res.send(docRef.id)
 })
 
-router.put('/:id', async(req, res) => {
-
-    const object = req.body
-    const id = req.params.id
-
-    if (!object || !id) {
-        res.sendStatus(400)
-        return
-    }
 
 
-    const docRef = db.collection('matches').doc(id)
-    await docRef.set(object, { merge: true })
-    res.sendStatus(200)
-})
+// delete/matches
+
 
 router.delete('/:id', async(req, res) => {
-    const id = req.params.id
 
-    if (!id) {
-        res.sendStatus(400)
-        return
-    }
-
-    await db.collection('matches').doc(id).delete()
+    const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
     res.sendStatus(200)
+
+
 })
 
 
-function ishamstersObject(maybeObject) {
+
+
+
+
+function ismatchesObject(maybeObject) {
 
     if (!maybeObject)
         return false

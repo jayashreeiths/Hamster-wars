@@ -1,73 +1,48 @@
-const getDatabase = require('../database.js')
-const db = getDatabase()
+const hamsterDatabase = require('../database.js')
+const db = hamsterDatabase.getDatabase()
 
 const express = require('express')
+
+//Get Hamsters
 const router = express.Router()
-
-// GET /Hamsters
 router.get('/', async(req, res) => {
+    const items = await hamsterDatabase.getCollection("hamsters");
+    res.send(items);
+});
 
-    const hamsterRef = db.collection('hamsters')
-    const snapshot = await hamsterRef.get()
-
-    if (snapshot.empty) {
-        res.send([])
-        return
-    }
-
-    let items = []
-    snapshot.forEach(doc => {
-        const data = doc.data()
-        data.id = doc.id
-        items.push(data)
-
-    })
-    res.send(items)
-})
+// Get Random
 router.get('/random', async(req, res) => {
-    const hamstersRef = db.collection('hamsters')
-    const snapshot = await hamstersRef.get()
-
-    if (snapshot.empty) {
-        console.log('hello')
-        res.send([])
-        return
-    }
-
-    let items = []
-    snapshot.forEach(doc => {
-        const data = doc.data()
-        items.push(data)
-    });
+    const items = await hamsterDatabase.getCollection("hamsters");
     let randomNum = Math.floor(Math.random() * items.length);
     console.log(randomNum)
     res.send(items[randomNum])
-})
+
+
+});
+
+//Get Hamster by ID
 router.get('/:id', async(req, res) => {
-    const id = req.params.id
-    const docRef = await db.collection('hamsters').doc(id).get()
+    const items = await hamsterDatabase.getDocByID('hamsters', req.params.id);
 
-    if (!docRef.exists) {
-        res.status(404).send('Hamster does not exist')
-        return
-    }
+    res.send(items);
+});
 
-    const data = docRef.data()
-    res.send(data)
-})
+// post hamsters
+
 router.post('/', async(req, res) => {
 
-    const object = req.body
-    console.log("hi")
-    if (!ishamstersObject(object)) {
-        res.sendStatus(400)
-        return
-    }
+        const object = req.body
 
-    const docRef = await db.collection('hamsters').add(object)
-    res.send(docRef.id)
-})
+        if (!ishamstersObject(object)) {
+            res.sendStatus(400)
+            return
+        }
 
+        const docRef = await db.collection("hamsters").add(object)
+
+        res.send(docRef.id)
+    })
+    // Put /Hamsters
 router.put('/:id', async(req, res) => {
 
     const object = req.body
@@ -84,21 +59,20 @@ router.put('/:id', async(req, res) => {
     res.sendStatus(200)
 })
 
+// delete /hamsters
+
+
 router.delete('/:id', async(req, res) => {
-    const id = req.params.id
 
-    if (!id) {
-        res.sendStatus(400)
-        return
-    }
-
-    await db.collection('hamsters').doc(id).delete()
+    const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
     res.sendStatus(200)
 })
 
 
+
+
 function ishamstersObject(maybeObject) {
-    // Pratigt, men kanske mera lättläst. Kan göras mer kompakt
+
     if (!maybeObject)
         return false
     else if (!maybeObject.favFood || typeof maybeObject.games != "number" || !maybeObject.name || typeof maybeObject.wins != "number" || !maybeObject.loves || typeof maybeObject.age != "number" || typeof maybeObject.defeats != "number" || !maybeObject.imgName)
