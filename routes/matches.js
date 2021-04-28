@@ -5,30 +5,49 @@ const express = require('express')
 const router = express.Router()
 
 router.get("/", async(req, res) => {
-    const items = await matchesDatabase.getCollection("matches");
-    res.send(items);
+    try {
+        const items = await matchesDatabase.getCollection("matches");
+        res.send(items);
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+
 });
 //Get matches by ID
 router.get('/:id', async(req, res) => {
-    const items = await matchesDatabase.getDocByID('matches', req.params.id);
+    try {
+        const items = await matchesDatabase.getDocByID('matches', req.params.id);
 
-    res.send(items);
+        res.send(items);
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+
 });
 
 // post matches
 
 router.post('/', async(req, res) => {
+    try {
+        const object = req.body
 
-    const object = req.body
+        if (!ismatchesObject(object)) {
+            res.sendStatus(400)
+            return
+        }
 
-    if (!ismatchesObject(object)) {
-        res.sendStatus(400)
-        return
+        const docRef = await db.collection("matches").add(object)
+
+        res.send(docRef.id)
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
     }
-
-    const docRef = await db.collection("matches").add(object)
-
-    res.send(docRef.id)
 })
 
 
@@ -37,9 +56,14 @@ router.post('/', async(req, res) => {
 
 
 router.delete('/:id', async(req, res) => {
+    try {
+        const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
+        res.sendStatus(200)
+    } catch (error) {
 
-    const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
-    res.sendStatus(200)
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
 
 
 })

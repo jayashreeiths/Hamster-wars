@@ -41,7 +41,6 @@ const getCollection = async(coll) => {
 const getDocByID = async(coll, id) => {
     const docRef = await db.collection(coll).doc(id).get();
     if (!docRef.exists) {
-        console.log("hamster does not exist")
         return 404;
     }
     const data = docRef.data();

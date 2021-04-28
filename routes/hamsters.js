@@ -6,66 +6,102 @@ const express = require('express')
 //Get Hamsters
 const router = express.Router()
 router.get('/', async(req, res) => {
-    const items = await hamsterDatabase.getCollection("hamsters");
-    res.send(items);
+    try {
+        const items = await hamsterDatabase.getCollection("hamsters");
+        res.send(items);
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+
+
 });
 
 // Get Random
 router.get('/random', async(req, res) => {
-    const items = await hamsterDatabase.getCollection("hamsters");
-    let randomNum = Math.floor(Math.random() * items.length);
-    console.log(randomNum)
-    res.send(items[randomNum])
+    try {
+        const items = await hamsterDatabase.getCollection("hamsters");
+        let randomNum = Math.floor(Math.random() * items.length);
+        console.log(randomNum)
+        res.send(items[randomNum])
+    } catch (error) {
 
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
 
 });
 
 //Get Hamster by ID
 router.get('/:id', async(req, res) => {
-    const items = await hamsterDatabase.getDocByID('hamsters', req.params.id);
+    try {
+        const items = await hamsterDatabase.getDocByID('hamsters', req.params.id);
 
-    res.send(items);
+        res.send(items);
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+
 });
 
 // post hamsters
 
 router.post('/', async(req, res) => {
+        try {
+            const object = req.body
+
+            if (!ishamstersObject(object)) {
+                res.sendStatus(400)
+                return
+            }
+
+            const docRef = await db.collection("hamsters").add(object)
+
+            res.send(docRef.id)
+        } catch (error) {
+
+            console.log('An error occured!' + error.message);
+            res.status(500).send(error.message);
+        }
+    })
+    // Put /Hamsters
+router.put('/:id', async(req, res) => {
+    try {
 
         const object = req.body
+        const id = req.params.id
 
-        if (!ishamstersObject(object)) {
+        if (!object || !id) {
             res.sendStatus(400)
             return
         }
 
-        const docRef = await db.collection("hamsters").add(object)
+        const docRef = db.collection('hamsters').doc(id)
+        await docRef.set(object, { merge: true })
+        res.sendStatus(200)
+    } catch (error) {
 
-        res.send(docRef.id)
-    })
-    // Put /Hamsters
-router.put('/:id', async(req, res) => {
-
-    const object = req.body
-    const id = req.params.id
-
-    if (!object || !id) {
-        res.sendStatus(400)
-        return
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
     }
-
-
-    const docRef = db.collection('hamsters').doc(id)
-    await docRef.set(object, { merge: true })
-    res.sendStatus(200)
 })
 
 // delete /hamsters
 
 
 router.delete('/:id', async(req, res) => {
+    try {
 
-    const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
-    res.sendStatus(200)
+        const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
+        res.sendStatus(200)
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
 })
 
 

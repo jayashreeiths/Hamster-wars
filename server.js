@@ -4,7 +4,12 @@ const cors = require('cors')
 const path = require('path')
 const hamsters = require('./routes/hamsters.js')
 const matches = require('./routes/matches.js')
-    //const PORT = 1339
+const matchWinners = require('./routes/matchWinners.js')
+const winners = require('./routes/winners.js')
+const losers = require('./routes/losers.js')
+
+
+//const PORT = 1339
 const PORT = process.env.PORT || 1339
 const staticFolder = path.join(__dirname, 'static')
 
@@ -30,6 +35,9 @@ app.use('/hamsters', hamsters)
     // REST API for /matches
 app.use('/matches', matches)
 
+app.use('/matchWinners', matchWinners)
+app.use('/winners', winners)
+app.use('/losers', losers)
 
 // Starta servern
 app.listen(PORT, () => {
