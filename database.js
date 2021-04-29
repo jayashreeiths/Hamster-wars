@@ -18,60 +18,109 @@ function getDatabase() {
 }
 
 const db = getDatabase();
-
+//get
 const getCollection = async(coll) => {
-    const collectionRef = db.collection(coll);
-    const snapshot = await collectionRef.get();
+        const collectionRef = db.collection(coll);
+        const snapshot = await collectionRef.get();
 
-    let items = [];
+        let items = [];
 
-    if (snapshot.empty) {
-        return items;
+        if (snapshot.empty) {
+            return items;
+        }
+
+        snapshot.forEach((doc) => {
+            const data = doc.data();
+            data.id = doc.id;
+            items.push(data);
+        });
+        return items
     }
-
-    snapshot.forEach((doc) => {
-        const data = doc.data();
-        data.id = doc.id;
-        items.push(data);
-    });
-
-    return items;
-};
-
+    //get by ID
 const getDocByID = async(coll, id) => {
-    const docRef = await db.collection(coll).doc(id).get();
-    if (!docRef.exists) {
-        return 404;
+    try {
+        const docRef = await db.collection(coll).doc(id).get();
+        if (!id) {
+            return 400;
+        }
+
+        if (!docRef.exists) {
+            return 404;
+        }
+
+        const data = docRef.data();
+        data.id = docRef.id;
+        return data;
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
     }
-    const data = docRef.data();
-    return data;
+};
+
+//post
+const postToCollection = async(coll, obj) => {
+    try {
+        if (obj.constructor === Object && Object.keys(obj).length === 0) {
+            return 400;
+        }
+
+        const docRef = await db.collection(coll).add(obj);
+
+        if (typeof docRef === "number") {
+            res.sendStatus(docRef);
+            return;
+        }
+        return docRef.id;
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+};
+
+//delete
+const deleteDocByID = async(col, id) => {
+    try {
+        const docRef = await db.collection(col).doc(id).get();
+
+        if (!docRef.exists) {
+            return 404;
+        }
+
+        if (!id) {
+            return 400;
+        }
+        await db.collection(col).doc(id).delete();
+        return 200;
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
+};
+//put
+const putToCollection = async(col, id, obj) => {
+    try {
+        const docRef = await db.collection(col).doc(id).get();
+        if (!docRef.exists) {
+            return 404;
+        }
+        if (!id) {
+            return 400;
+        }
+        if (obj.constructor === Object && Object.keys(obj).length === 0) {
+            return 400;
+        }
+        await db.collection(col).doc(id).set(obj, { merge: true });
+        return 200;
+    } catch (error) {
+
+        console.log('An error occured!' + error.message);
+        res.status(500).send(error.message);
+    }
 };
 
 
-const deleteDocByID = async(coll, id) => {
-    if (!id) {
-        return (400)
 
-    }
-
-    const docRef = await db.collection(coll).doc(id).delete();
-    return docRef
-
-};
-
-
-
-
-/*function ishamstersObject(maybeObject) {
-    // Pratigt, men kanske mera lättläst. Kan göras mer kompakt
-    if (!maybeObject)
-        return false
-    else if (!maybeObject.favFood || typeof maybeObject.games != "number" || !maybeObject.name || typeof maybeObject.wins != "number" || !maybeObject.loves || typeof maybeObject.age != "number" || typeof maybeObject.defeats != "number" || !maybeObject.imgName)
-        return false
-
-    return true
-}*/
-
-module.exports = { getCollection, getDatabase, getDocByID, deleteDocByID }
-    //module.exports = { getDocByID, getDatabase ,postDocByID,}
-    //module.exports = getDatabase
+module.exports = { getCollection, getDatabase, getDocByID, deleteDocByID, postToCollection, putToCollection }

@@ -13,18 +13,17 @@ router.get('/:id', async(req, res) => {
     try {
         console.log("1")
 
-        const docRef = await db.collection('matches').where('winnerId', '==', id).get()
+        const snapshot = await db.collection('matches').where('winnerId', '==', id).get()
 
         console.log("2")
-
-        /*if (docRef.empty) {
+        if (snapshot.empty) {
             res.status(404).send('no winning matches');
             return;
-        }*/
+        }
         console.log("3")
 
         let matchWins = []
-        docRef.foreach(win => {
+        snapshot.forEach(win => {
             const data = win.data();
             data.id = win.id;
             matchWins.push(data)

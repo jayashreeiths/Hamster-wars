@@ -2,21 +2,15 @@ const hamsterDatabase = require('../database.js')
 const db = hamsterDatabase.getDatabase()
 
 const express = require('express')
+const router = express.Router()
 
 //Get Hamsters
-const router = express.Router()
-router.get('/', async(req, res) => {
-    try {
-        const items = await hamsterDatabase.getCollection("hamsters");
-        res.send(items);
-    } catch (error) {
-
-        console.log('An error occured!' + error.message);
-        res.status(500).send(error.message);
-    }
-
-
+router.get("/", async(req, res) => {
+    const items = await hamsterDatabase.getCollection("hamsters");
+    res.send(items);
 });
+
+
 
 // Get Random
 router.get('/random', async(req, res) => {
@@ -34,88 +28,69 @@ router.get('/random', async(req, res) => {
 });
 
 //Get Hamster by ID
-router.get('/:id', async(req, res) => {
-    try {
-        const items = await hamsterDatabase.getDocByID('hamsters', req.params.id);
+router.get("/:id", async(req, res) => {
+    const id = req.params.id;
+    const item = await hamsterDatabase.getDocByID("hamsters", id);
+    res.send(item);
+});
+// post hamsters
+router.post("/", async(req, res) => {
+    const obj = req.body;
 
-        res.send(items);
-    } catch (error) {
-
-        console.log('An error occured!' + error.message);
-        res.status(500).send(error.message);
+    if (!obj.name ||
+        typeof obj.age != "number" ||
+        !obj.favFood ||
+        !obj.loves ||
+        !obj.imgName ||
+        typeof obj.wins != "number" ||
+        typeof obj.defeats != "number" ||
+        typeof obj.games != "number"
+    ) {
+        res.sendStatus(400);
+        return;
     }
+
+    const docRef = await hamsterDatabase.postToCollection("hamsters", obj)
+
+    const newHamster = {
+        name: req.body.name,
+        age: req.body.age,
+        favFood: req.body.favFood,
+        loves: req.body.loves,
+        imgName: req.body.imgName,
+        wins: 0,
+        defeats: 0,
+        games: 0,
+        id: docRef
+    }
+
+    res.send(newHamster)
 
 });
 
-// post hamsters
+//put/hansters
 
-router.post('/', async(req, res) => {
-        try {
-            const object = req.body
-
-            if (!ishamstersObject(object)) {
-                res.sendStatus(400)
-                return
-            }
-
-            const docRef = await db.collection("hamsters").add(object)
-
-            res.send(docRef.id)
-        } catch (error) {
-
-            console.log('An error occured!' + error.message);
-            res.status(500).send(error.message);
-        }
-    })
-    // Put /Hamsters
-router.put('/:id', async(req, res) => {
-    try {
-
-        const object = req.body
-        const id = req.params.id
-
-        if (!object || !id) {
-            res.sendStatus(400)
-            return
-        }
-
-        const docRef = db.collection('hamsters').doc(id)
-        await docRef.set(object, { merge: true })
-        res.sendStatus(200)
-    } catch (error) {
-
-        console.log('An error occured!' + error.message);
-        res.status(500).send(error.message);
-    }
-})
+router.put("/:id", async(req, res) => {
+    const id = req.params.id
+    const obj = req.body
+    const response = await hamsterDatabase.putToCollection("hamsters", id, obj)
+    res.sendStatus(response);
+});
 
 // delete /hamsters
 
 
 router.delete('/:id', async(req, res) => {
-    try {
 
-        const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
-        res.sendStatus(200)
-    } catch (error) {
 
-        console.log('An error occured!' + error.message);
-        res.status(500).send(error.message);
-    }
+    const items = await hamsterDatabase.deleteDocByID('hamsters', req.params.id)
+    res.sendStatus(items)
+
 })
 
 
 
 
-function ishamstersObject(maybeObject) {
-
-    if (!maybeObject)
-        return false
-    else if (!maybeObject.favFood || typeof maybeObject.games != "number" || !maybeObject.name || typeof maybeObject.wins != "number" || !maybeObject.loves || typeof maybeObject.age != "number" || typeof maybeObject.defeats != "number" || !maybeObject.imgName)
-        return false
-
-    return true
-}
 
 
 module.exports = router
